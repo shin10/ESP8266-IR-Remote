@@ -1,0 +1,12 @@
+{
+  "cSpell.words": [
+    "Auxiliar",
+    "irsend",
+    "ssid",
+    "wifi"
+  ],
+  "files.associations": {
+    "*.html": "cpp",
+    "string": "cpp"
+  }
+}

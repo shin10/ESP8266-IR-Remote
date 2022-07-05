@@ -1,0 +1,453 @@
+[
+  {
+      "id": "f7f9a23e3e7649cb",
+      "type": "tab",
+      "label": "TV IRRemote",
+      "disabled": false,
+      "info": "",
+      "env": []
+  },
+  {
+      "id": "f09510d04ac2d8af",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "Leiser",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA0B",
+      "payloadType": "str",
+      "x": 130,
+      "y": 260,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "63d9c9ab0c0b7267",
+      "type": "debug",
+      "z": "f7f9a23e3e7649cb",
+      "name": "",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 450,
+      "y": 340,
+      "wires": []
+  },
+  {
+      "id": "fc407fb64e8adede",
+      "type": "mqtt out",
+      "z": "f7f9a23e3e7649cb",
+      "name": "",
+      "topic": "home/tv-remote/command",
+      "qos": "0",
+      "retain": "false",
+      "respTopic": "",
+      "contentType": "",
+      "userProps": "",
+      "correl": "",
+      "expiry": "",
+      "broker": "4b2b018d995fd01b",
+      "x": 510,
+      "y": 280,
+      "wires": []
+  },
+  {
+      "id": "0f5e169e3f26f6cc",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "Lauter",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA0A",
+      "payloadType": "str",
+      "x": 130,
+      "y": 220,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "e9d62f7891182fd1",
+      "type": "function",
+      "z": "f7f9a23e3e7649cb",
+      "name": "",
+      "func": "// split the values and create an object\nlet arr = msg.payload.split('+');\nlet obj = {\n    \"cmd\": parseInt(arr.pop(), 16),\n    \"addr\": arr.length ? parseInt(arr.pop(), 16) : 0\n};\nmsg.payload = obj;\nreturn msg;",
+      "outputs": 1,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 300,
+      "y": 280,
+      "wires": [
+          [
+              "fc407fb64e8adede",
+              "63d9c9ab0c0b7267"
+          ]
+      ]
+  },
+  {
+      "id": "fb4e40f221e0c5bb",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "mute",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA49",
+      "payloadType": "str",
+      "x": 130,
+      "y": 300,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "7019ae13c36a6dcb",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "An",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA1A",
+      "payloadType": "str",
+      "x": 130,
+      "y": 400,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "57e3af92ecc583dc",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "An/Aus",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA1C",
+      "payloadType": "str",
+      "x": 130,
+      "y": 480,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "b397f904041d9225",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "Aus",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA1B",
+      "payloadType": "str",
+      "x": 130,
+      "y": 440,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "ef1f3627ae2db067",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "Input Toggle",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA13",
+      "payloadType": "str",
+      "x": 150,
+      "y": 540,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "0c2ea2d49f33fa4e",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "Input 1",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA5A+AF7A",
+      "payloadType": "str",
+      "x": 130,
+      "y": 580,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "a7e01329c2cec3c5",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "Input 2",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA5A+AF7B",
+      "payloadType": "str",
+      "x": 130,
+      "y": 620,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "30e7c86feb475d06",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "Input 3",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA5A+AF7C",
+      "payloadType": "str",
+      "x": 130,
+      "y": 660,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "6b1174ec1984b589",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "Input 4",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA5A+AF7D",
+      "payloadType": "str",
+      "x": 130,
+      "y": 700,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "c86e533bb634c920",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "sleep",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "AA5E+AF70",
+      "payloadType": "str",
+      "x": 130,
+      "y": 340,
+      "wires": [
+          [
+              "e9d62f7891182fd1"
+          ]
+      ]
+  },
+  {
+      "id": "f527db7be3d3e732",
+      "type": "inject",
+      "z": "f7f9a23e3e7649cb",
+      "name": "",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "",
+      "payloadType": "date",
+      "x": 140,
+      "y": 140,
+      "wires": [
+          [
+              "9cc2d4ad147adea9"
+          ]
+      ]
+  },
+  {
+      "id": "c8a69266beef6bcb",
+      "type": "mqtt out",
+      "z": "f7f9a23e3e7649cb",
+      "name": "",
+      "topic": "home/tv-remote/buzzer",
+      "qos": "0",
+      "retain": "false",
+      "respTopic": "",
+      "contentType": "",
+      "userProps": "",
+      "correl": "",
+      "expiry": "",
+      "broker": "4b2b018d995fd01b",
+      "x": 510,
+      "y": 140,
+      "wires": []
+  },
+  {
+      "id": "9cc2d4ad147adea9",
+      "type": "function",
+      "z": "f7f9a23e3e7649cb",
+      "name": "",
+      "func": "\nconst PAUSE = 0;\nconst NOTE_C4 = 262;\nconst NOTE_CS4 = 277;\nconst NOTE_D4 = 294;\nconst NOTE_DS4 = 311;\nconst NOTE_E4 = 330;\nconst NOTE_F4 = 349;\nconst NOTE_FS4 = 370;\nconst NOTE_G4 = 392;\nconst NOTE_GS4 = 415;\nconst NOTE_A4 = 440;\nconst NOTE_AS4 = 466;\nconst NOTE_B4 = 494;\nconst NOTE_C5 = 523;\n\nreturn {payload: {buzz:[\n    {f: NOTE_E4, d: 500},\n    {f: NOTE_A4, d: 500},\n    {f: NOTE_C4, d: 1000},\n]}};\n",
+      "outputs": 1,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 300,
+      "y": 140,
+      "wires": [
+          [
+              "c8a69266beef6bcb"
+          ]
+      ]
+  },
+  {
+      "id": "4b2b018d995fd01b",
+      "type": "mqtt-broker",
+      "name": "",
+      "broker": "192.168.178.123",
+      "port": "1883",
+      "clientid": "",
+      "autoConnect": true,
+      "usetls": false,
+      "protocolVersion": "4",
+      "keepalive": "60",
+      "cleansession": true,
+      "birthTopic": "",
+      "birthQos": "0",
+      "birthPayload": "",
+      "birthMsg": {},
+      "closeTopic": "",
+      "closeQos": "0",
+      "closePayload": "",
+      "closeMsg": {},
+      "willTopic": "",
+      "willQos": "0",
+      "willPayload": "",
+      "willMsg": {},
+      "sessionExpiry": ""
+  }
+]

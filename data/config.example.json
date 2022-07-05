@@ -1,0 +1,7 @@
+{
+  "mqttBroker": "local.broker",
+  "mqttPort": "1883",
+  "mqttPortWS": "9001",
+  "mqttTopicBuzzer": "home/tv-remote/buzzer",
+  "mqttTopicCommand": "home/tv-remote/command"
+}

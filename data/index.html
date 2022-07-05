@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/bonsai.css@1.2.2/dist/bonsai.min.css" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+
+<body style="--py:1rem;--px:3ch">
+  <div id="app">
+    <h1>{{config.name}}</h1>
+
+    <h2>IR Remote</h2>
+
+    <div v-for="bgrp in irButtons">
+      <hr>
+      <h3>{{bgrp.category}}</h3>
+      <div style="--ta:center">
+        <button v-for="cmd in bgrp.commands" @click="irSend(cmd.cmd)">
+          {{cmd.label}}
+        </button>
+      </div>
+    </div>
+
+    <h2>Buzzer</h2>
+
+    <div v-for="bgrp in sfxButtons">
+      <hr>
+      <h3>{{bgrp.category}}</h3>
+      <div style="--ta:center">
+        <button v-for="cmd in bgrp.commands" @click="sfxSend(cmd.buzz)">
+          {{cmd.label}}
+        </button>
+      </div>
+    </div>
+
+    <div style="--my:2rem;--ofy:scroll;--h:15em">
+      <table style="--m:0;--ta:left;--bg:white;--ff:monospace;--fr:invert(.9);--h:100%">
+        <tbody>
+          <tr v-for="msg in logs">
+            <th><small>{{ msg.timestamp.toISOString().substr(11) }}</small></th>
+            <td v-for="arg in msg.args">{{ arg }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+
+<script src="https://unpkg.com/axios@0.2.1/dist/axios.min.js"></script>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="https://unpkg.com/vue@3"></script>
+
+<script>
+
+  const { createApp } = Vue;
+
+  const PAUSE = 0;
+  const NOTE_C4 = 262;
+  const NOTE_CS4 = 277;
+  const NOTE_D4 = 294;
+  const NOTE_DS4 = 311;
+  const NOTE_E4 = 330;
+  const NOTE_F4 = 349;
+  const NOTE_FS4 = 370;
+  const NOTE_G4 = 392;
+  const NOTE_GS4 = 415;
+  const NOTE_A4 = 440;
+  const NOTE_AS4 = 466;
+  const NOTE_B4 = 494;
+  const NOTE_C5 = 523;
+
+  createApp({
+    data() {
+      return {
+        logs: [],
+        client: null,
+
+        config: {
+          "name": "ESP-IR-Remote",
+          "mqttBroker": "local.broker",
+          "mqttPort": "1883",
+          "mqttPortWS": "9001",
+          "mqttTopicBuzzer": "home/tv-remote/buzzer",
+          "mqttTopicCommand": "home/tv-remote/command"
+        },
+
+        irButtons: [
+          {
+            category: "POWER",
+            commands: [
+              { label: "POWER ON/OFF", cmd: "AA1C" },
+              { label: "POWER ON", cmd: "AA1A" },
+              { label: "POWER OFF", cmd: "AA1B" },
+              { label: "SLEEP", cmd: "AA5E+AF70" }
+            ]
+          },
+          {
+            category: "VOLUME",
+            commands: [
+              { label: "VOLUME+", cmd: "AA0A" },
+              { label: "VOLUME-", cmd: "AA0B" },
+              { label: "MUTING", cmd: "AA49" },
+            ]
+          },
+          {
+            category: "INPUT",
+            commands: [
+              { label: "INPUT TOGGLE", cmd: "AA13" },
+              { label: "INPUT 1", cmd: "AA5A+AF7A" },
+              { label: "INPUT 2", cmd: "AA5A+AF7B" },
+              { label: "INPUT 3", cmd: "AA5A+AF7C" },
+              { label: "INPUT 4", cmd: "AA5A+AF7D" },
+              { label: "INPUT 5", cmd: "AA5A+AF7E" },
+              { label: "INPUT 6", cmd: "AA5A+AF7F" },
+              { label: "INPUT PC", cmd: "AA5A+AF74" },
+              { label: "ANT", cmd: "AA45" },
+              {
+                label: "ANTENNA A/B CYCLE", cmd: "AA0C"
+              }
+            ]
+          },
+          {
+            category: "TUNER",
+            commands: [
+              { label: "1", cmd: "AA01" },
+              { label: "2", cmd: "AA02" },
+              { label: "3", cmd: "AA03" },
+              { label: "4", cmd: "AA04" },
+              { label: "5", cmd: "AA05" },
+              { label: "6", cmd: "AA06" },
+              { label: "7", cmd: "AA07" },
+              { label: "8", cmd: "AA08" },
+              { label: "9", cmd: "AA09" },
+              { label: "0", cmd: "AA00" },
+              { label: ".(DOT)", cmd: "AA5A+AF64" },
+              { label: "CH+", cmd: "AA10" },
+              { label: "CH-", cmd: "AA11" },
+              { label: "CH ENTER", cmd: "AA5A+AF61" },
+              { label: "CH RETURN", cmd: "AA5A+AF62" },
+              { label: "BLUE / FAVORITE A", cmd: "AA5B+AF2F" },
+              { label: "RED / FAVORITE B", cmd: "AA5B+AF2C" },
+              { label: "GREEN / FAVORITE C", cmd: "AA5B+AF2D" },
+              { label: "YELLOW / FAVORITE D", cmd: "AA5B+AF2E" },
+              { label: "TV GUIDE", cmd: "AA5B+AF24" },
+              { label: "Day +", cmd: "AA5B+AF2A" },
+              { label: "Day -", cmd: "AA5B+AF2B" },
+              { label: "PAGE +", cmd: "AA5B+AF33" },
+              { label: "PAGE -", cmd: "AA5B+AF34" },
+              { label: "TV GUIDE INFO", cmd: "AA5B+AF25" },
+              { label: "TV GUIDE MENU", cmd: "AA5B+AF27" },
+              { label: "MTS", cmd: "AA1E" },
+            ]
+          },
+          {
+            category: "SETUP",
+            commands: [
+              { label: "DISPLAY", cmd: "AA4A" },
+              { label: "SCREEN SIZE", cmd: "AA5E+AF3A" },
+              { label: "AV SELECTION", cmd: "AA5E+AF61" },
+              { label: "HOME MENU", cmd: "AA5B+AF20" },
+              { label: "RETURN", cmd: "AA5B+AF22" },
+              { label: "CURSOR RIGHT", cmd: "AA24" },
+              { label: "CURSOR LEFT", cmd: "AA25" },
+              { label: "CURSOR UP", cmd: "AA26" },
+              { label: "CURSOR DOWN", cmd: "AA27" },
+              { label: "ENTER", cmd: "AA28" },
+            ]
+          },
+          {
+            category:
+              "PIP",
+            commands: [
+              { label: "FREEZE", cmd: "AA5E+AF24" },
+              { label: "SPLIT", cmd: "AA5E+AF20" },
+              { label: "SWAP", cmd: "AA5E+AF25" },
+              { label: "SHIFT", cmd: "AA5E+AF27" },
+            ]
+          }
+        ],
+
+        sfxButtons: [
+          {
+            category: "Buzzer Example",
+            commands: [
+              {
+                label: "E A C •••", buzz: [
+                  { f: NOTE_E4, d: 500 },
+                  { f: NOTE_A4, d: 500 },
+                  { f: NOTE_C4, d: 1000 },
+                  { f: PAUSE, d: 50 },
+                  { f: NOTE_C5, d: 50 },
+                  { f: PAUSE, d: 50 },
+                  { f: NOTE_C5, d: 50 },
+                  { f: PAUSE, d: 50 },
+                  { f: NOTE_C5, d: 50 }
+                ]
+              },
+            ]
+          }
+        ]
+      }
+    },
+
+    mounted() {
+      this.fetchConfig();
+    },
+
+    methods: {
+      log() {
+        this.logs.push({ timestamp: new Date(), args: [, ...arguments] });
+        while (this.logs.length > 10) this.logs.shift();
+      },
+      irSend(cmd) {
+        let cmdArr = cmd.split('+');
+        this.client.publish(this.config.mqttTopicCommand, JSON.stringify({
+          cmd: parseInt("0x" + cmdArr.pop()),
+          addr: parseInt("0x" + (cmdArr.pop() ?? 0)),
+        }));
+      },
+      sfxSend(buzz) {
+        this.client.publish(this.config.mqttTopicBuzzer, JSON.stringify({ buzz }));
+      },
+      async fetchConfig() {
+        this.log("Fetching configuration..");
+        try {
+          this.config = await axios.get('/config.json');
+        } catch (error) {
+          this.log("Error loading config.json - using defaults");
+        }
+
+        this.log(this.config);
+
+        this.client = mqtt.connect(`ws://${this.config.mqttBroker}:${this.config.mqttPortWS}`);
+        this.client.subscribe(this.config.mqttTopicBuzzer);
+        this.client.subscribe(this.config.mqttTopicCommand);
+
+        this.client.on("message", (topic, payload) => {
+          this.log([topic, payload].join(": "));
+          // this.client.end()
+        })
+      }
+    }
+  }).mount('#app');
+</script>
+
+</html>
