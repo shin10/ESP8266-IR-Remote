@@ -46,7 +46,7 @@ Alternatively you can use the WifiManager to set the properties after the first 
 
 ## WifiManager
 
-To set the Wifi credentials power up the ESP8266 and connect to the newly created Access Point called ESP${CHIP_ID}. Further you can change the MQTT settings. Submit your changes to save them to `config.json`.
+To set the Wifi credentials power up the ESP8266 and connect to the newly created Access Point called ESP${CHIP_ID}. Open [http://192.168.4.1](http://192.168.4.1) to access the configuration page. Further you can change the MQTT settings. Submit your changes to save them to `config.json`.
 
 ## MQTT server configuration
 
