@@ -14,7 +14,7 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-// webserver
+// web server
 #include <ESP8266WebServer.h>
 #include <FS.h> // has to be imported before <detail\RequestHandlersImpl.h>
 #include <detail\RequestHandlersImpl.h>
@@ -231,7 +231,7 @@ void setup()
     WiFiManagerParameter custom_name("name", "name", config["name"], 64);
     WiFiManagerParameter custom_mqtt_broker("mqtt-server", "mqtt broker", config["mqttBroker"], 64);
     WiFiManagerParameter custom_mqtt_port("mqtt-port", "mqtt server port", config["mqttPort"], 5);
-    WiFiManagerParameter custom_mqtt_port_ws("mqtt-port-ws", "mqtt server port", config["mqttPortWS"], 5);
+    WiFiManagerParameter custom_mqtt_port_ws("mqtt-port-ws", "mqtt server websocket port", config["mqttPortWS"], 5);
     WiFiManagerParameter custom_mqtt_topic_buzzer("buzzer-topic", "buzzer topic", config["mqttTopicBuzzer"], 128);
     WiFiManagerParameter custom_mqtt_topic_command("command-topic", "command topic", config["mqttTopicCommand"], 128);
 
