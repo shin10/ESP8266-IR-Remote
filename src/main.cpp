@@ -199,12 +199,6 @@ void setup()
     sprintf(clientName, "ESP-IR-Remote_%X", ESP.getChipId());
     Serial.println("booting...");
     Serial.println(clientName);
-    // delay(500); // note for other projects
-    // Serial.swap();
-    // delay(500);
-
-    // alternative:
-    // Serial.begin(115200, SERIAL_8N1, SERIAL_TX_ONLY, 2); // (TX to GPIO2; this however is the builtin led :| )
 
     pinMode(PIN_BUZZER, OUTPUT);
     digitalWrite(PIN_BUZZER, NOTE_OFF);
@@ -253,36 +247,10 @@ void setup()
     drd.loop();
     drd.detectDoubleReset();
 
-    if (0 && drd.doubleResetDetected)
+    if (drd.doubleResetDetected)
     {
         Serial.println("Double Reset Detected");
         wifiManager.resetSettings();
-
-        // config.remove("mqttBroker");
-        // config.remove("mqttPort");
-        // config.remove("mqttPortWS");
-        // config.remove("mqttTopicBuzzer");
-        // config.remove("mqttTopicCommand");
-
-        // struct station_config conf;
-        // *conf.ssid = 0;
-        // *conf.password = 0;
-
-        // // API Reference: wifi_station_disconnect() need to be called after system initializes and the ESP8266 Station mode is enabled.
-        // if (WiFi.getMode() & WIFI_STA)
-        //     wifi_station_disconnect();
-
-        // ETS_UART_INTR_DISABLE();
-        // if (WiFi.persistent)
-        // {
-        //     wifi_station_set_config(&conf);
-        // }
-        // else
-        // {
-        //     wifi_station_set_config_current(&conf);
-        // }
-
-        // ETS_UART_INTR_ENABLE();
 
         drd.stop();
         drd.detectDoubleReset();
