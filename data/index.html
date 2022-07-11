@@ -60,7 +60,7 @@
   const NOTE_C4 = 262;
   const NOTE_CS4 = 277;
   const NOTE_D4 = 294;
-  const NOTE_DS4 = 311;
+  const NOTE_DS4 = 311; 
   const NOTE_E4 = 330;
   const NOTE_F4 = 349;
   const NOTE_FS4 = 370;
@@ -185,16 +185,43 @@
             category: "Buzzer Example",
             commands: [
               {
-                label: "E A C •••", buzz: [
+                label: "E A C", buzz: [
                   { f: NOTE_E4, d: 500 },
                   { f: NOTE_A4, d: 500 },
-                  { f: NOTE_C4, d: 1000 },
+                  { f: NOTE_C4, d: 1000 }
+                ]
+              },
+              {
+                label: "•••", buzz: [
                   { f: PAUSE, d: 50 },
                   { f: NOTE_C5, d: 50 },
                   { f: PAUSE, d: 50 },
                   { f: NOTE_C5, d: 50 },
                   { f: PAUSE, d: 50 },
                   { f: NOTE_C5, d: 50 }
+                ]
+              },
+              {
+                label: "---•••---", buzz: [
+                  { f: NOTE_A4, d: 200 },
+                  { f: PAUSE, d: 50 },
+                  { f: NOTE_A4, d: 200 },
+                  { f: PAUSE, d: 50 },
+                  { f: NOTE_A4, d: 200 },
+                  { f: PAUSE, d: 50 },
+
+                  { f: NOTE_A4, d: 50 },
+                  { f: PAUSE, d: 50 },
+                  { f: NOTE_A4, d: 50 },
+                  { f: PAUSE, d: 50 },
+                  { f: NOTE_A4, d: 50 },
+                  { f: PAUSE, d: 50 },
+
+                  { f: NOTE_A4, d: 200 },
+                  { f: PAUSE, d: 50 },
+                  { f: NOTE_A4, d: 200 },
+                  { f: PAUSE, d: 50 },
+                  { f: NOTE_A4, d: 200 }
                 ]
               },
             ]

@@ -5,9 +5,16 @@
 #include <DoubleResetDetector.h>
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
+#define MQTT_MAX_PACKET_SIZE 1024
 #include <PubSubClient.h>
 #include <WiFiManager.h>
 
+// OTA
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
+
+// webserver
 #include <ESP8266WebServer.h>
 #include <FS.h> // has to be imported before <detail\RequestHandlersImpl.h>
 #include <detail\RequestHandlersImpl.h>
@@ -53,12 +60,13 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
     Serial.println("\nincoming message");
     Serial.println(topic);
+    Serial.println(length);
 
     const char *MQTT_TOPIC_COMMAND = config["mqttTopicCommand"];
     const char *MQTT_TOPIC_BUZZER = config["mqttTopicBuzzer"];
 
     String _msg;
-    for (byte i = 0; i < length; ++i)
+    for (unsigned int i = 0; i < length; ++i)
     {
         char tmp = char(payload[i]);
         _msg += tmp;
@@ -67,7 +75,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 
     char json[length];
     _msg.toCharArray(json, length + 1);
-    StaticJsonDocument<1024> doc;
+    StaticJsonDocument<MQTT_MAX_PACKET_SIZE> doc;
     DeserializationError error = deserializeJson(doc, json);
 
     if (error)
@@ -147,11 +155,50 @@ DynamicJsonDocument readConfig()
     return docLoad;
 }
 
+void setupOTA()
+{
+    ArduinoOTA.onStart([]()
+                       {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else {  // U_FS
+      type = "filesystem";
+    }
+
+    // NOTE: if updating FS this would be the place to unmount FS using FS.end()
+    Serial.println("Start updating " + type); });
+    ArduinoOTA.onEnd([]()
+                     { Serial.println("\nEnd"); });
+    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
+                          { Serial.printf("Progress: %u%%\r", (progress / (total / 100))); });
+    ArduinoOTA.onError([](ota_error_t error)
+                       {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      Serial.println("Auth Failed");
+    } else if (error == OTA_BEGIN_ERROR) {
+      Serial.println("Begin Failed");
+    } else if (error == OTA_CONNECT_ERROR) {
+      Serial.println("Connect Failed");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      Serial.println("Receive Failed");
+    } else if (error == OTA_END_ERROR) {
+      Serial.println("End Failed");
+    } });
+    ArduinoOTA.begin();
+    Serial.println("Ready");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+}
+
 void setup()
 {
     Serial.begin(115200, SERIAL_8N1, SERIAL_TX_ONLY);
 
     sprintf(clientName, "ESP-IR-Remote_%X", ESP.getChipId());
+    Serial.println("booting...");
+    Serial.println(clientName);
     // delay(500); // note for other projects
     // Serial.swap();
     // delay(500);
@@ -246,6 +293,7 @@ void setup()
     else
     {
         wifiManager.autoConnect(clientName);
+        setupOTA();
     }
 
     drd.loop();
@@ -287,6 +335,7 @@ void setup()
     const char *MQTT_TOPIC_COMMAND = config["mqttTopicCommand"];
     const char *MQTT_TOPIC_BUZZER = config["mqttTopicBuzzer"];
     mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+    mqttClient.setBufferSize(MQTT_MAX_PACKET_SIZE);
     mqttClient.setCallback(mqttCallback);
 
     if (!mqttClient.connected())
@@ -343,5 +392,5 @@ void loop()
     mqttClient.loop();
     ledService.loop();
     server.handleClient();
-    delay(100);
+    ArduinoOTA.handle();
 }
