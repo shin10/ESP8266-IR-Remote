@@ -192,37 +192,42 @@ void setupOTA()
     Serial.println(WiFi.localIP());
 }
 
-void setup()
+void connectMQTT(int retryDelay)
 {
-    Serial.begin(115200, SERIAL_8N1, SERIAL_TX_ONLY);
+    if (!mqttClient.connected())
+    {
+        const char *MQTT_TOPIC_COMMAND = config["mqttTopicCommand"];
+        const char *MQTT_TOPIC_BUZZER = config["mqttTopicBuzzer"];
+        Serial.println("Connecting to MQTT Broker");
+        Serial.printf("Client name: %s\n", clientName);
+        while (!mqttClient.connected())
+        {
+            mqttClient.connect(clientName);
+            Serial.print(".");
+            ledService.toggle();
+            ledService.loop();
+            delay(retryDelay);
+        }
+        mqttClient.subscribe(MQTT_TOPIC_BUZZER);
+        mqttClient.subscribe(MQTT_TOPIC_COMMAND);
+        Serial.println(" done");
+        ledService.off();
+        ledService.loop();
+    }
+}
 
-    sprintf(clientName, "ESP-IR-Remote_%X", ESP.getChipId());
-    Serial.println("booting...");
-    Serial.println(clientName);
+void setupMQTT()
+{
+    const char *MQTT_BROKER = config["mqttBroker"];
+    const uint16_t MQTT_PORT = config["mqttPort"].as<int>();
+    mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+    mqttClient.setBufferSize(MQTT_MAX_PACKET_SIZE);
+    mqttClient.setCallback(mqttCallback);
+    connectMQTT(100);
+}
 
-    pinMode(PIN_BUZZER, OUTPUT);
-    digitalWrite(PIN_BUZZER, NOTE_OFF);
-
-    ledService.setup();
-    irsend.begin();
-
-    config = readConfig();
-
-    if (!config["name"] || !config["name"].as<String>().length())
-        config["name"] = clientName;
-    else
-        strcpy(clientName, config["name"].as<String>().c_str());
-    if (!config["mqttBroker"] || !config["mqttBroker"].as<String>().length())
-        config["mqttBroker"] = "local.broker";
-    if (!config["mqttPort"] || !config["mqttPort"].as<String>().length())
-        config["mqttPort"] = 1883;
-    if (!config["mqttPortWS"] || !config["mqttPortWS"].as<String>().length())
-        config["mqttPortWS"] = 9001;
-    if (!config["mqttTopicBuzzer"] || !config["mqttTopicBuzzer"].as<String>().length())
-        config["mqttTopicBuzzer"] = "home/tv-remote/buzzer";
-    if (!config["mqttTopicCommand"] || !config["mqttTopicCommand"].as<String>().length())
-        config["mqttTopicCommand"] = "home/tv-remote/command";
-
+void setupWifi()
+{
     wifi_station_set_hostname(clientName);
     WiFiManager wifiManager;
 
@@ -294,36 +299,45 @@ void setup()
         Serial.println("config saved");
         configFile.close();
     }
+}
+
+void setup()
+{
+    Serial.begin(115200, SERIAL_8N1, SERIAL_TX_ONLY);
+
+    sprintf(clientName, "ESP-IR-Remote_%X", ESP.getChipId());
+    Serial.println("booting...");
+    Serial.println(clientName);
+
+    pinMode(PIN_BUZZER, OUTPUT);
+    digitalWrite(PIN_BUZZER, NOTE_OFF);
+
+    ledService.setup();
+    irsend.begin();
+
+    config = readConfig();
+
+    if (!config["name"] || !config["name"].as<String>().length())
+        config["name"] = clientName;
+    else
+        strcpy(clientName, config["name"].as<String>().c_str());
+    if (!config["mqttBroker"] || !config["mqttBroker"].as<String>().length())
+        config["mqttBroker"] = "local.broker";
+    if (!config["mqttPort"] || !config["mqttPort"].as<String>().length())
+        config["mqttPort"] = 1883;
+    if (!config["mqttPortWS"] || !config["mqttPortWS"].as<String>().length())
+        config["mqttPortWS"] = 9001;
+    if (!config["mqttTopicBuzzer"] || !config["mqttTopicBuzzer"].as<String>().length())
+        config["mqttTopicBuzzer"] = "home/tv-remote/buzzer";
+    if (!config["mqttTopicCommand"] || !config["mqttTopicCommand"].as<String>().length())
+        config["mqttTopicCommand"] = "home/tv-remote/command";
+
+    setupWifi();
 
     drd.loop();
     server.begin();
 
-    const char *MQTT_BROKER = config["mqttBroker"];
-    const uint16_t MQTT_PORT = config["mqttPort"].as<int>();
-    const char *MQTT_TOPIC_COMMAND = config["mqttTopicCommand"];
-    const char *MQTT_TOPIC_BUZZER = config["mqttTopicBuzzer"];
-    mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
-    mqttClient.setBufferSize(MQTT_MAX_PACKET_SIZE);
-    mqttClient.setCallback(mqttCallback);
-
-    if (!mqttClient.connected())
-    {
-        Serial.println("Connecting to MQTT Broker");
-        Serial.printf("Client name: %s\n", clientName);
-        while (!mqttClient.connected())
-        {
-            mqttClient.connect(clientName);
-            Serial.print(".");
-            ledService.toggle();
-            ledService.loop();
-            delay(100);
-        }
-        mqttClient.subscribe(MQTT_TOPIC_BUZZER);
-        mqttClient.subscribe(MQTT_TOPIC_COMMAND);
-        Serial.println(" done");
-        ledService.off();
-        ledService.loop();
-    }
+    setupMQTT();
 
     server.onNotFound(handleUnknown);
     server.serveStatic("/", LittleFS, "/index.html");
@@ -357,6 +371,7 @@ void handleUnknown()
 void loop()
 {
     drd.loop();
+    connectMQTT(5000);
     mqttClient.loop();
     ledService.loop();
     server.handleClient();
